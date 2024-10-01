@@ -2,7 +2,7 @@
  * @module Component
  */
 
-export const Tag = "";
+export const Tag = "pin-component" as const;
 
 /**
  * HTML Attributes available to set
