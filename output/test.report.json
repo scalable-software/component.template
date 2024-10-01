@@ -1,1 +1,52 @@
-[]
+[
+  {
+    "type": "Metadata",
+    "spec": "Gesture",
+    "definition": [
+      "Given Meta.GESTURE Type.Metadata test",
+      "when module imported",
+      "then Gesture is defined"
+    ],
+    "status": "pass"
+  },
+  {
+    "type": "Metadata",
+    "spec": "Event",
+    "definition": [
+      "Given Meta.EVENT Type.Metadata test",
+      "when module imported",
+      "then Event is defined"
+    ],
+    "status": "pass"
+  },
+  {
+    "type": "Metadata",
+    "spec": "Tag",
+    "definition": [
+      "Given Meta.Tag Type.Metadata test",
+      "when module imported",
+      "then Tag is defined"
+    ],
+    "status": "pass"
+  },
+  {
+    "type": "Metadata",
+    "spec": "Operation",
+    "definition": [
+      "Given Meta.OPERATION Type.Metadata test",
+      "when module imported",
+      "then Operation is defined"
+    ],
+    "status": "pass"
+  },
+  {
+    "type": "Metadata",
+    "spec": "Attribute",
+    "definition": [
+      "Given Meta.ATTRIBUTE Type.Metadata test",
+      "when module imported",
+      "then Attribute is defined"
+    ],
+    "status": "pass"
+  }
+]

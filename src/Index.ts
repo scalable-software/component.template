@@ -6,6 +6,7 @@ export {
   type Attributes,
   type Operations,
   type Events,
+  type Gestures,
   type Handler,
 } from "./Pin.meta.js";
 

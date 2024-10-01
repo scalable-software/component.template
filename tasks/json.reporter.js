@@ -23,6 +23,9 @@ function jsonReporter(config) {
     browser,
     { description, suite, success, properties }
   ) =>
+    properties &&
+    properties.type &&
+    properties.spec &&
     results.push({
       type: properties.type,
       spec: properties.spec,
