@@ -54,3 +54,33 @@ export const hasSetter = (obj, propName) => {
   }
   return false;
 };
+
+export const Type = {
+  METADATA: "Metadata",
+  UTILITY: "Utility",
+  CONFIG: "Configuration",
+  STATE: "State",
+  OPERATION: "Operation",
+  EVENT: "Event",
+  GESTURE: "Gesture",
+  COMPOSITION: "Composition",
+};
+
+export const Metadata = {
+  TAG: "Tag",
+  ATTRIBUTE: "Attribute",
+  STATE: "State",
+  OPERATION: "Operation",
+  EVENT: "Event",
+  GESTURE: "Gesture",
+};
+
+export const Config = {
+  TAG: "Tag",
+  ATTRIBUTE: "Attribute",
+};
+
+export const Utility = {
+  TEMPLATE: "Template",
+  GET: "get",
+};

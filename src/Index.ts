@@ -1,6 +1,12 @@
 export { type Configuration } from "@scalable.software/component";
 
-export { Tag, Attribute, Operation, Event, Gesture } from "./Pin.meta.js";
+export {
+  Tag,
+  Attribute,
+  Operation,
+  Event,
+  Gesture,
+} from "./Component.template.meta.js";
 
 export {
   type Attributes,
@@ -8,6 +14,6 @@ export {
   type Events,
   type Gestures,
   type Handler,
-} from "./Pin.meta.js";
+} from "./Component.template.meta.js";
 
-export { Pin } from "./Pin.js";
+export { ComponentTemplate } from "./Component.template.js";

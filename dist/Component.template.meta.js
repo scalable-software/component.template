@@ -1,7 +1,7 @@
 /**
  * @module Component
  */
-export const Tag = "pin-component";
+export const Tag = "component-template";
 /**
  * HTML Attributes available to set
  * @category Metadata: State

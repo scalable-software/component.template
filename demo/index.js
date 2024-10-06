@@ -1,3 +1,3 @@
-import { Pin } from "@scalable.software/pin.component";
+import { ComponentTemplate } from "@scalable.software/component.template";
 
-customElements.define(Pin.Tag, Pin);
+customElements.define(ComponentTemplate.Tag, ComponentTemplate);
