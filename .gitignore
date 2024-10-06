@@ -1,4 +1,6 @@
 node_modules/
 coverage/
+output/
+dist/
 package-lock.json
 .npmrc
