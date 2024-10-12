@@ -1,0 +1,217 @@
+[
+  {
+    "type": "Metadata",
+    "spec": "Event",
+    "definition": [
+      "Given Metadata.EVENT Type.Metadata test",
+      "and Event imported",
+      "when Event is defined",
+      "then True is true"
+    ],
+    "status": "pass"
+  },
+  {
+    "type": "Metadata",
+    "spec": "Event",
+    "definition": [
+      "Given Metadata.EVENT Type.Metadata test",
+      "and Event imported",
+      "then Event is defined"
+    ],
+    "status": "pass"
+  },
+  {
+    "type": "Utility",
+    "spec": "get",
+    "definition": [
+      "Given Utility.GET Type.UTILITY test",
+      "then ComponentTemplate.get static method is defined"
+    ],
+    "status": "pass"
+  },
+  {
+    "type": "Utility",
+    "spec": "get",
+    "definition": [
+      "Given Utility.GET Type.UTILITY test",
+      "and ComponentTemplate is defined in custom element registry",
+      "and a new component is added to DOM",
+      "when ComponentTemplate.get() is called",
+      "then items in array of components match components in DOM"
+    ],
+    "status": "pass"
+  },
+  {
+    "type": "Utility",
+    "spec": "get",
+    "definition": [
+      "Given Utility.GET Type.UTILITY test",
+      "and ComponentTemplate is defined in custom element registry",
+      "and a new component is added to DOM",
+      "when ComponentTemplate.get() is called",
+      "then components is defined"
+    ],
+    "status": "pass"
+  },
+  {
+    "type": "Utility",
+    "spec": "get",
+    "definition": [
+      "Given Utility.GET Type.UTILITY test",
+      "and ComponentTemplate is defined in custom element registry",
+      "and a new component is added to DOM",
+      "when ComponentTemplate.get() is called",
+      "then components is an array"
+    ],
+    "status": "pass"
+  },
+  {
+    "type": "Metadata",
+    "spec": "State",
+    "definition": [
+      "Given Metadata.STATE Type.Metadata test",
+      "and States imported",
+      "then True is true"
+    ],
+    "status": "pass"
+  },
+  {
+    "type": "Metadata",
+    "spec": "Tag",
+    "definition": [
+      "Given Metadata.Tag Type.Metadata test",
+      "when Tag imported",
+      "then Tag is defined"
+    ],
+    "status": "pass"
+  },
+  {
+    "type": "Configuration",
+    "spec": "Attribute",
+    "definition": [
+      "Given Config.ATTRIBUTE Type.CONFIG test",
+      "and ComponentTemplate imported",
+      "and ComponentTemplate is defined",
+      "then ComponentTemplate.Attributes static getter is defined"
+    ],
+    "status": "pass"
+  },
+  {
+    "type": "Configuration",
+    "spec": "Attribute",
+    "definition": [
+      "Given Config.ATTRIBUTE Type.CONFIG test",
+      "and ComponentTemplate imported",
+      "and ComponentTemplate is defined",
+      "and ComponentTemplate.Attributes static getter is defined",
+      "then ComponentTemplate.Attributes is Attribute"
+    ],
+    "status": "pass"
+  },
+  {
+    "type": "Configuration",
+    "spec": "Attribute",
+    "definition": [
+      "Given Config.ATTRIBUTE Type.CONFIG test",
+      "and ComponentTemplate imported",
+      "then ComponentTemplate is defined"
+    ],
+    "status": "pass"
+  },
+  {
+    "type": "Configuration",
+    "spec": "Tag",
+    "definition": [
+      "Given Config.TAG Type.CONFIG test",
+      "and ComponentTemplate imported",
+      "then ComponentTemplate is defined"
+    ],
+    "status": "pass"
+  },
+  {
+    "type": "Configuration",
+    "spec": "Tag",
+    "definition": [
+      "Given Config.TAG Type.CONFIG test",
+      "and ComponentTemplate imported",
+      "and ComponentTemplate is defined",
+      "and ComponentTemplate.Tag static getter is defined",
+      "then ComponentTemplate.Tag is Tag"
+    ],
+    "status": "pass"
+  },
+  {
+    "type": "Configuration",
+    "spec": "Tag",
+    "definition": [
+      "Given Config.TAG Type.CONFIG test",
+      "and ComponentTemplate imported",
+      "and ComponentTemplate is defined",
+      "then ComponentTemplate.Tag static getter is defined"
+    ],
+    "status": "pass"
+  },
+  {
+    "type": "Metadata",
+    "spec": "Attribute",
+    "definition": [
+      "Given Metadata.ATTRIBUTE Type.Metadata test",
+      "and Attribute imported",
+      "when Attribute is defined",
+      "then True is true"
+    ],
+    "status": "pass"
+  },
+  {
+    "type": "Metadata",
+    "spec": "Attribute",
+    "definition": [
+      "Given Metadata.ATTRIBUTE Type.Metadata test",
+      "and Attribute imported",
+      "then Attribute is defined"
+    ],
+    "status": "pass"
+  },
+  {
+    "type": "Metadata",
+    "spec": "Operation",
+    "definition": [
+      "Given Metadata.OPERATION Type.Metadata test",
+      "and Operation imported",
+      "when Operation is defined",
+      "then True is true"
+    ],
+    "status": "pass"
+  },
+  {
+    "type": "Metadata",
+    "spec": "Operation",
+    "definition": [
+      "Given Metadata.OPERATION Type.Metadata test",
+      "and Operation imported",
+      "then Operation is defined"
+    ],
+    "status": "pass"
+  },
+  {
+    "type": "Metadata",
+    "spec": "Gesture",
+    "definition": [
+      "Given Metadata.GESTURE Type.Metadata test",
+      "and Gesture imported",
+      "when Gesture is defined",
+      "then True is true"
+    ],
+    "status": "pass"
+  },
+  {
+    "type": "Metadata",
+    "spec": "Gesture",
+    "definition": [
+      "Given Metadata.GESTURE Type.Metadata test",
+      "and Gesture imported",
+      "then Gesture is defined"
+    ],
+    "status": "pass"
+  }
+]

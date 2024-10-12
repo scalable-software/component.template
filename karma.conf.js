@@ -26,8 +26,8 @@ module.exports = function (config) {
     plugins: ["karma-*", require("./tasks/json.reporter.js")],
     reporters: ["spec", "coverage-istanbul", "json"],
     jsonReporter: {
-      dir: "./output",
-      filename: "test.report.json",
+      dir: "./specifications",
+      filename: "Component.Template.report.json",
     },
     coverageIstanbulInstrumenter: {
       esModules: true,
