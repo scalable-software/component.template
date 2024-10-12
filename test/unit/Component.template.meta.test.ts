@@ -49,7 +49,7 @@ given("Metadata.STATE Type.Metadata test", () => {
     setSpecProperty("type", Type.METADATA);
     setSpecProperty("spec", Metadata.STATE);
   });
-  and("States imported", () => {
+  when("States imported", () => {
     // State existence tests
     // State value tests
     then("True is true", () => {
