@@ -1,5 +1,4 @@
-import * as help from "./Helper.js";
-import { Type, Metadata, Config, Utility } from "./Helper.js";
+import { Type, Metadata } from "./Helper.js";
 
 const given = (description, spec) => describe(`Given ${description}`, spec);
 const and = (description, spec) => describe(`and ${description}`, spec);

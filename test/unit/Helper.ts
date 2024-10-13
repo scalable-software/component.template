@@ -1,7 +1,7 @@
 export const define = (tag: string, component) =>
   !customElements.get(tag) && customElements.define(tag, component);
 
-export const whenDefined = async (tag) => await customElements.whenDefined(tag);
+export const defined = async (tag) => await customElements.whenDefined(tag);
 
 export const create = <T extends Element>(tag) =>
   document.createElement(tag) as T;
@@ -58,7 +58,7 @@ export const hasSetter = (obj, propName) => {
 export const Type = {
   METADATA: "Metadata",
   UTILITY: "Utility",
-  CONFIG: "Configuration",
+  CONFIGURATION: "Configuration",
   STATE: "State",
   OPERATION: "Operation",
   EVENT: "Event",
@@ -75,12 +75,17 @@ export const Metadata = {
   GESTURE: "Gesture",
 };
 
-export const Config = {
+export const Utility = {
+  TEMPLATE: "Template",
+  GET: "get",
+};
+
+export const Configuration = {
   TAG: "Tag",
   ATTRIBUTE: "Attribute",
 };
 
-export const Utility = {
+export const Composition = {
   TEMPLATE: "Template",
-  GET: "get",
+  CSS: "css",
 };

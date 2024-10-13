@@ -1,6 +1,6 @@
 import * as help from "./Helper.js";
 
-import { Config, Metadata, Type, Utility } from "./Helper.js";
+import { Configuration, Type, Utility } from "./Helper.js";
 
 const given = (description, spec) => describe(`Given ${description}`, spec);
 const and = (description, spec) => describe(`and ${description}`, spec);
@@ -14,10 +14,10 @@ import {
 } from "@scalable.software/component.template";
 
 // #region Configuration
-given("Config.TAG Type.CONFIG test", () => {
+given("Type.CONFIGURATION Type.CONFIG test", () => {
   beforeEach(() => {
-    setSpecProperty("type", Type.CONFIG);
-    setSpecProperty("spec", Config.TAG);
+    setSpecProperty("type", Type.CONFIGURATION);
+    setSpecProperty("spec", Configuration.TAG);
   });
   and("ComponentTemplate imported", () => {
     then("ComponentTemplate is defined", () => {
@@ -35,10 +35,11 @@ given("Config.TAG Type.CONFIG test", () => {
     });
   });
 });
+
 given("Config.ATTRIBUTE Type.CONFIG test", () => {
   beforeEach(() => {
-    setSpecProperty("type", Type.CONFIG);
-    setSpecProperty("spec", Config.ATTRIBUTE);
+    setSpecProperty("type", Type.CONFIGURATION);
+    setSpecProperty("spec", Configuration.ATTRIBUTE);
   });
   and("ComponentTemplate imported", () => {
     then("ComponentTemplate is defined", () => {
