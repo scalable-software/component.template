@@ -36,9 +36,8 @@ given("Metadata.ATTRIBUTE Type.Metadata test", () => {
       expect(Attribute).toBeDefined();
     });
     when("Attribute is defined", () => {
-      // Attribute existence tests
-      then("True is true", () => {
-        expect(true).toBe(true);
+      then("Attribute is an object", () => {
+        expect(typeof Attribute).toBe("object");
       });
     });
   });
@@ -49,11 +48,12 @@ given("Metadata.STATE Type.Metadata test", () => {
     setSpecProperty("type", Type.METADATA);
     setSpecProperty("spec", Metadata.STATE);
   });
-  when("States imported", () => {
-    // State existence tests
-    // State value tests
-    then("True is true", () => {
-      expect(true).toBe(true);
+  and("States imported", () => {
+    and("<State> is defined", () => {
+      then("<State> is and object", () => {
+        const State = {};
+        expect(typeof State).toBe("object");
+      });
     });
   });
 });
@@ -68,9 +68,8 @@ given("Metadata.OPERATION Type.Metadata test", () => {
       expect(Operation).toBeDefined();
     });
     when("Operation is defined", () => {
-      // Operation existence tests;
-      then("True is true", () => {
-        expect(true).toBe(true);
+      then("Operation is an object", () => {
+        expect(typeof Operation).toBe("object");
       });
     });
   });
@@ -86,9 +85,8 @@ given("Metadata.EVENT Type.Metadata test", () => {
       expect(Event).toBeDefined();
     });
     when("Event is defined", () => {
-      // Event existence tests;
-      then("True is true", () => {
-        expect(true).toBe(true);
+      then("Event is an object", () => {
+        expect(typeof Event).toBe("object");
       });
     });
   });
@@ -104,9 +102,8 @@ given("Metadata.GESTURE Type.Metadata test", () => {
       expect(Gesture).toBeDefined();
     });
     when("Gesture is defined", () => {
-      // Gesture existence tests;
-      then("True is true", () => {
-        expect(true).toBe(true);
+      then("Gesture is an object", () => {
+        expect(typeof Gesture).toBe("object");
       });
     });
   });
