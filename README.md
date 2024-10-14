@@ -18,15 +18,15 @@ git clone
 
 Update the name of the package:
 
-1. Package: `package.json` in the `root` of the directory.
+1. Package: `package.json` in the `root` directory.
 
-2. Typescript Config: both `tsconfig.json` files, in the `root` of directory.
+2. Typescript Config: both `tsconfig.json` files are in the `root` directory.
 
-3. ES Module: `importmap.js` files, in the `importmap` directory.
+3. ES Module: `importmap.js` files in the `importmap` directory.
 
-4. Unit Testing: The `wallaby.js` file, in the `root` of directory.
+4. Unit Testing: The `wallaby.js` and `karma.conf.js` files are in the `root` directory.
 
-5. Demo: The `index.js` file, in the `demo` of directory.
+5. Demo: The `index.js` file in the `demo` directory.
 
 ## Building the Component
 
