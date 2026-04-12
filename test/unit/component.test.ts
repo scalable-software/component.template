@@ -6,7 +6,7 @@ import {
   Attributes,
 } from "@scalable.software/component.template";
 
-configuration("Tag", () => {
+configuration(Configuration.TAG, () => {
   and("Component imported", () => {
     then("Component is defined", () => {
       expect(Component).toBeDefined();
@@ -26,7 +26,7 @@ configuration("Tag", () => {
   });
 });
 
-configuration("ATTRIBUTE", () => {
+configuration(Configuration.ATTRIBUTES, () => {
   and("Component imported", () => {
     then("Component is defined", () => {
       expect(Component).toBeDefined();
@@ -38,7 +38,7 @@ configuration("ATTRIBUTE", () => {
       });
 
       and("Component.Attributes static getter is defined", () => {
-        then("Component.Attributes is Attribute", () => {
+        then("Component.Attributes is Attributes", () => {
           expect(Component.Attributes).toBe(Attributes);
         });
       });
@@ -46,7 +46,7 @@ configuration("ATTRIBUTE", () => {
   });
 });
 
-utility("TEMPLATE", () => {
+utility(Utilities.TEMPLATE, () => {
   then("Component.Template static property is defined", () => {
     expect(Component.Template).toBeDefined();
   });
@@ -58,7 +58,7 @@ utility("TEMPLATE", () => {
   });
 });
 
-composition("Template", () => {
+composition(Composition.TEMPLATE, () => {
   given("Component is defined in custom element registry", () => {
     beforeEach(() => {
       define(Component.Tag, Component);
@@ -68,7 +68,7 @@ composition("Template", () => {
       let template: HTMLTemplateElement;
       beforeEach(async () => {
         template = (await Component.Template.load(
-          "component.template.html"
+          "component.template.html",
         )) as HTMLTemplateElement;
       });
       afterEach(() => {
@@ -96,7 +96,7 @@ composition("Template", () => {
   });
 });
 
-composition("CSS", () => {
+composition(Composition.CSS, () => {
   given("Component is defined in custom element registry", () => {
     beforeEach(() => {
       define(Component.Tag, Component);

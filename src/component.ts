@@ -1,13 +1,20 @@
 /**
  * @module Component
  */
+
+/**
+ * Base class and utilities for creating web components
+ */
 import { Component, Template } from "@scalable.software/component";
 import { type Configuration } from "@scalable.software/component";
 
-import { Tag, Attributes } from "./component.meta.js";
+/**
+ * Import Configuration and Metadata for the component
+ */
+import { Tag, CSS, Attributes } from "./component.meta.js";
 
 /**
- * Configuration required for components with custom layout and style
+ * Optional Configuration: required for components with custom layout and style
  * @category Configuration
  */
 export const configuration: Configuration = {
@@ -16,15 +23,12 @@ export const configuration: Configuration = {
     id: Tag,
   },
   css: {
-    name: "component.style.css",
+    name: CSS,
   },
 } as const;
 
 /**
- * A pin button that can be:
- * 1. pinned and unpinned
- * 2. hidden and shown
- * @category Components
+ * @category Component
  */
 export class ComponentTemplate extends Component {
   /**
@@ -37,7 +41,7 @@ export class ComponentTemplate extends Component {
 
   /**
    * Only attributes defined the Attributes object will be observed in DOM
-   * @category Configuration
+   * @category State
    */
   public static get Attributes(): Attributes {
     return Attributes;
@@ -56,6 +60,9 @@ export class ComponentTemplate extends Component {
    */
   protected elements: {} = {};
 
+  /**
+   * @hidden
+   */
   constructor() {
     super(configuration);
   }
@@ -68,18 +75,18 @@ export class ComponentTemplate extends Component {
   protected _attributeHandlers = {};
 
   /**
-   * Initialize component attributes with default values
-   * @category Configuration
-   * @hidden
-   */
-  protected _initialize = () => {};
-
-  /**
    * Cache element references to improve performance
    * @category Configuration
    * @hidden
    */
   protected _cache = () => {};
+
+  /**
+   * Initialize component attributes with default values
+   * @category Configuration
+   * @hidden
+   */
+  protected _initialize = () => {};
 
   /**
    * Called by the connectedCallback prototypical method

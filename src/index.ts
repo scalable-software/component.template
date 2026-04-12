@@ -1,7 +1,6 @@
-export { type Configuration } from "@scalable.software/component";
-
 export {
   Tag,
+  CSS,
   Attributes,
   State,
   Operation,

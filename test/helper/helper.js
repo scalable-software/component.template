@@ -85,6 +85,41 @@ globalThis.metadata = (metadata, spec) => {
   });
 };
 
+globalThis.validation = (state, spec) => {
+  describe(`Validation.${state} test`, () => {
+    beforeEach(() => {
+      setSpecProperty("type", "Validation");
+      setSpecProperty("spec", state);
+    });
+
+    spec();
+  });
+};
+
+globalThis.Metadata = {
+  TAG: "tag",
+  ATTRIBUTES: "attributes",
+  STATE: "state",
+  OPERATION: "operation",
+  EVENT: "event",
+  GESTURE: "gesture",
+};
+
+globalThis.Configuration = {
+  TAG: "Tag",
+  ATTRIBUTES: "Attributes",
+};
+
+globalThis.Utilities = {
+  GET: "get",
+  TEMPLATE: "template",
+};
+
+globalThis.Composition = {
+  TEMPLATE: "Template",
+  CSS: "CSS",
+};
+
 // Helper functions for testing
 const create = (tag) => document.createElement(tag);
 const append = (element) => document.body.appendChild(element);
@@ -92,10 +127,14 @@ const append = (element) => document.body.appendChild(element);
 globalThis.define = (tag, component) =>
   !customElements.get(tag) && customElements.define(tag, component);
 
-globalThis.add = (tag, attributes) =>
-  append(
-    attributes != null ? setAttributes(create(tag), attributes) : create(tag)
-  );
+globalThis.add = add = (tag, attributes, innerHTML) => {
+  const element =
+    attributes != null ? setAttributes(create(tag), attributes) : create(tag);
+
+  innerHTML != null && (element.innerHTML = innerHTML);
+
+  return append(element);
+};
 
 globalThis.remove = (id) => document.getElementById(id).remove();
 
@@ -107,3 +146,10 @@ globalThis.hasSetter = (obj, propName) => {
   }
   return false;
 };
+
+const setAttributes = (element, attributes) => (
+  Object.entries(attributes).forEach(([name, value]) =>
+    element.setAttribute(name, value),
+  ),
+  element
+);

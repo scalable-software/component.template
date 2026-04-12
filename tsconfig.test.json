@@ -2,13 +2,13 @@
   "compilerOptions": {
     "module": "es2022",
     "target": "es2022",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "sourceMap": true,
     "inlineSources": true,
-    "baseUrl": "./",
     "paths": {
       "@scalable.software/component.template": ["./src/index.js"]
     },
+    "types": ["jasmine"],
     "declaration": false
   },
   "include": [
@@ -24,8 +24,16 @@
     "excludeProtected": true,
     "disableSources": true,
     "categorizeByGroup": false,
+    "categoryOrder": [
+      "Configuration",
+      "Utility",
+      "Data",
+      "State",
+      "Operations",
+      "Events"
+    ],
     "sort": ["static-first", "visibility"],
-    "name": "Web Component",
+    "name": "component.template",
     "plugin": ["typedoc-plugin-merge-modules"],
     "mergeModulesMergeMode": "module",
     "hideGenerator": true

@@ -1,6 +1,7 @@
 package-lock.json
 docs
 coverage
+report
 node_modules
 demo
 specifications
