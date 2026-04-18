@@ -1,11 +1,12 @@
 import { Template } from "@scalable.software/component";
 
 import {
-  ComponentTemplate as Component,
+  component as Component,
   Tag,
   Attributes,
 } from "@scalable.software/component.template";
 
+// Configuration
 configuration(Configuration.TAG, () => {
   and("Component imported", () => {
     then("Component is defined", () => {
@@ -46,6 +47,7 @@ configuration(Configuration.ATTRIBUTES, () => {
   });
 });
 
+// Utilities
 utility(Utilities.TEMPLATE, () => {
   then("Component.Template static property is defined", () => {
     expect(Component.Template).toBeDefined();
@@ -58,6 +60,7 @@ utility(Utilities.TEMPLATE, () => {
   });
 });
 
+// Compositions
 composition(Composition.TEMPLATE, () => {
   given("Component is defined in custom element registry", () => {
     beforeEach(() => {
@@ -125,3 +128,11 @@ composition(Composition.CSS, () => {
     });
   });
 });
+
+// State
+
+// Operation
+
+// Event
+
+// Gesture

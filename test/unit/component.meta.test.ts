@@ -7,6 +7,7 @@ import {
   Gesture,
 } from "@scalable.software/component.template";
 
+// Tag
 metadata(Metadata.TAG, () => {
   when("Tag imported", () => {
     then("Tag is defined", () => {
@@ -15,6 +16,7 @@ metadata(Metadata.TAG, () => {
   });
 });
 
+// Attributes
 metadata(Metadata.ATTRIBUTES, () => {
   and("Attribute imported", () => {
     then("Attributes is defined", () => {
@@ -29,6 +31,7 @@ metadata(Metadata.ATTRIBUTES, () => {
   });
 });
 
+// State
 metadata(Metadata.STATE, () => {
   and("State imported", () => {
     then("State is defined", () => {
@@ -43,6 +46,7 @@ metadata(Metadata.STATE, () => {
   });
 });
 
+// Operation
 metadata(Metadata.OPERATION, () => {
   and("Operation imported", () => {
     then("Operation is defined", () => {
@@ -57,6 +61,7 @@ metadata(Metadata.OPERATION, () => {
   });
 });
 
+// Event
 metadata(Metadata.EVENT, () => {
   and("Event imported", () => {
     then("Event is defined", () => {
@@ -71,6 +76,7 @@ metadata(Metadata.EVENT, () => {
   });
 });
 
+// Gesture
 metadata(Metadata.GESTURE, () => {
   and("Gesture imported", () => {
     then("Gesture is defined", () => {

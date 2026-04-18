@@ -2,15 +2,11 @@
  * @module Component
  */
 
-/**
- * Base class and utilities for creating web components
- */
+// Base Component
 import { Component, Template } from "@scalable.software/component";
 import { type Configuration } from "@scalable.software/component";
 
-/**
- * Import Configuration and Metadata for the component
- */
+// Component Metadata
 import { Tag, CSS, Attributes } from "./component.meta.js";
 
 /**
@@ -30,7 +26,7 @@ export const configuration: Configuration = {
 /**
  * @category Component
  */
-export class ComponentTemplate extends Component {
+export class component extends Component {
   /**
    * The tag name of the component
    * @category Configuration
