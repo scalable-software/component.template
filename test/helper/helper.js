@@ -34,6 +34,16 @@ globalThis.composition = (composition, spec) => {
     spec();
   });
 };
+globalThis.element = (element, spec) => {
+  describe(`Element.${element} test`, () => {
+    beforeEach(() => {
+      setSpecProperty("type", "element");
+      setSpecProperty("spec", element);
+    });
+
+    spec();
+  });
+};
 globalThis.state = (state, spec) => {
   describe(`State.${state} test`, () => {
     beforeEach(() => {
@@ -119,6 +129,7 @@ globalThis.Utilities = {
 globalThis.Composition = {
   TEMPLATE: "Template",
   CSS: "CSS",
+  ELEMENT: "Element",
 };
 
 // Helper functions for testing
