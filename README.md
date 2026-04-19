@@ -46,19 +46,21 @@ To create a new component, you should first update the package metadata:
 
 Update the package name across all relevant files in this project:
 
-1. Package: `package.json` in the `root` directory.
+1. Specifications: update name and add package metadata in the `component.specifications.json` file in the `specifications` directory.
 
-2. Typescript Config: both `tsconfig.json` files are in the `root` directory.
+2. Package: `package.json` in the `root` directory.
 
-3. ES Module: `importmap.js` files in the `importmap` directory.
+3. Typescript Config: both `tsconfig.json` files are in the `root` directory.
 
-4. Component: update the file names in `src` folder and class name. 
+4. ES Module: `importmap.js` files in the `importmap` directory.
 
-5. Unit Testing: The `wallaby.js` and `karma.conf.js` files are in the `root` directory, the file names and the package name used in unit tests: `test/unit`
+5. Component: update the file names in `src` folder and class name.
 
-6. Demo: The `index.js` file in the `demo` directory.
+6. Unit Testing: The `wallaby.js` and `karma.conf.js` files are in the `root` directory, the file names and the package name used in unit tests: `test/unit`
 
-7. Confirm that the component name has been updated in all relevant files by running the `test` script:
+7. Demo: The `index.js` file in the `demo` directory.
+
+8. Confirm that the component name has been updated in all relevant files by running the `test` script:
 
 ```bash
 npm test

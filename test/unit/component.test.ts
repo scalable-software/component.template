@@ -3,6 +3,7 @@ import { Template } from "@scalable.software/component";
 import {
   component as Component,
   Tag,
+  CSS,
   Attributes,
 } from "@scalable.software/component.template";
 
@@ -123,6 +124,12 @@ composition(Composition.CSS, () => {
 
         then("component.root contents contains a link to stylesheet", () => {
           expect(component.root.innerHTML).toContain("stylesheet");
+        });
+
+        and("component.root contents contains a link to stylesheet", () => {
+          then("the stylesheet file's name is correct", () => {
+            expect(component.root.innerHTML).toContain(CSS);
+          });
         });
       });
     });
