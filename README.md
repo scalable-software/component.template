@@ -52,11 +52,13 @@ Update the package name across all relevant files in this project:
 
 3. ES Module: `importmap.js` files in the `importmap` directory.
 
-4. Unit Testing: The `wallaby.js` and `karma.conf.js` files are in the `root` directory and the package name used in unit tests: `test/unit`
+4. Component: update the file names in `src` folder and class name. 
 
-5. Demo: The `index.js` file in the `demo` directory.
+5. Unit Testing: The `wallaby.js` and `karma.conf.js` files are in the `root` directory, the file names and the package name used in unit tests: `test/unit`
 
-6. Confirm that the component name has been updated in all relevant files by running the `test` script:
+6. Demo: The `index.js` file in the `demo` directory.
+
+7. Confirm that the component name has been updated in all relevant files by running the `test` script:
 
 ```bash
 npm test
