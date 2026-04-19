@@ -52,7 +52,7 @@ Update the package name across all relevant files in this project:
 
 3. ES Module: `importmap.js` files in the `importmap` directory.
 
-4. Unit Testing: The `wallaby.js` and `karma.conf.js` files are in the `root` directory.
+4. Unit Testing: The `wallaby.js` and `karma.conf.js` files are in the `root` directory and the package name used in unit tests: `test/unit`
 
 5. Demo: The `index.js` file in the `demo` directory.
 
