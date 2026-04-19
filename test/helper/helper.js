@@ -98,6 +98,7 @@ globalThis.validation = (state, spec) => {
 
 globalThis.Metadata = {
   TAG: "tag",
+  CSS: "css",
   ATTRIBUTES: "attributes",
   STATE: "state",
   OPERATION: "operation",
