@@ -42,7 +42,7 @@ npm run document
 
 To create a new component, you should first update the package metadata:
 
-## Update the Component Metadata
+## Update Package Metadata
 
 Update the package name across all relevant files in this project:
 
