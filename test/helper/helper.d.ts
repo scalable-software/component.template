@@ -16,6 +16,7 @@ declare function validation(state: string, fn: () => void): void;
 
 declare const Metadata: {
   TAG: string;
+  CSS: string;
   ATTRIBUTES: string;
   STATE: string;
   OPERATION: string;
