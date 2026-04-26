@@ -16,11 +16,11 @@ import { Tag, CSS, Attributes } from "./component.meta.js";
 export const configuration: Configuration = {
   url: import.meta.url,
   template: {
-    id: Tag,
+    id: Tag
   },
   css: {
-    name: CSS,
-  },
+    name: CSS
+  }
 } as const;
 
 /**

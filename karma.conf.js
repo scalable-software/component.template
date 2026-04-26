@@ -7,7 +7,7 @@ module.exports = function (config) {
       "/src/": "/base/src/",
       "/test/unit/": "/base/test/unit/",
       "/test/helper/": "/base/test/helper/",
-      "/node_modules/": "/base/node_modules/",
+      "/node_modules/": "/base/node_modules/"
     },
     files: [
       { pattern: "./test/helper/helper.js" },
@@ -17,30 +17,30 @@ module.exports = function (config) {
       { pattern: "./importmap/importmap.test.js" },
       {
         pattern: "./node_modules/@scalable.software/**/dist/*.js",
-        type: "module",
+        type: "module"
       },
       { pattern: "./src/**/*.js", type: "module" },
-      { pattern: "./test/unit/**/*.js", type: "module" },
+      { pattern: "./test/unit/**/*.js", type: "module" }
     ],
     preprocessors: {
-      "src/**/!(*.test).js": ["karma-coverage-istanbul-instrumenter"],
+      "src/**/!(*.test).js": ["karma-coverage-istanbul-instrumenter"]
     },
     plugins: ["karma-*", require("./tasks/json.reporter.js")],
     reporters: ["spec", "coverage-istanbul", "json"],
     jsonReporter: {
       dir: "./report",
-      filename: "component.template.report.json",
+      filename: "component.template.report.json"
     },
     coverageIstanbulInstrumenter: {
-      esModules: true,
+      esModules: true
     },
     coverageIstanbulReporter: {
       reports: ["html", "text", "lcovonly"],
       dir: path.join(__dirname, "coverage"),
-      skipFilesWithNoCoverage: true,
+      skipFilesWithNoCoverage: true
     },
     browsers: ["ChromeHeadless"],
     singleRun: true,
-    logLevel: config.LOG_DISABLE,
+    logLevel: config.LOG_DISABLE
   });
 };

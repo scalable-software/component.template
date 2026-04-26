@@ -113,23 +113,23 @@ globalThis.Metadata = {
   STATE: "state",
   OPERATION: "operation",
   EVENT: "event",
-  GESTURE: "gesture",
+  GESTURE: "gesture"
 };
 
 globalThis.Configuration = {
   TAG: "Tag",
-  ATTRIBUTES: "Attributes",
+  ATTRIBUTES: "Attributes"
 };
 
 globalThis.Utilities = {
   GET: "get",
-  TEMPLATE: "template",
+  TEMPLATE: "template"
 };
 
 globalThis.Composition = {
   TEMPLATE: "Template",
   CSS: "CSS",
-  ELEMENT: "Element",
+  ELEMENT: "Element"
 };
 
 // Helper functions for testing
@@ -161,7 +161,7 @@ globalThis.hasSetter = (obj, propName) => {
 
 const setAttributes = (element, attributes) => (
   Object.entries(attributes).forEach(([name, value]) =>
-    element.setAttribute(name, value),
+    element.setAttribute(name, value)
   ),
   element
 );

@@ -46,7 +46,7 @@ declare function define(tag: string, component: any): void;
 declare function add<T extends Element>(
   tag: string,
   attributes?: any,
-  innerHTML?: string,
+  innerHTML?: string
 ): T;
 declare function remove(id: string): void;
 declare function hasSetter(obj: any, propName: string): boolean;

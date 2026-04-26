@@ -4,7 +4,7 @@ import {
   component as Component,
   Tag,
   CSS,
-  Attributes,
+  Attributes
 } from "@scalable.software/component.template";
 
 // Configuration
@@ -72,7 +72,7 @@ composition(Composition.TEMPLATE, () => {
       let template: HTMLTemplateElement;
       beforeEach(async () => {
         template = (await Component.Template.load(
-          "component.template.html",
+          "component.template.html"
         )) as HTMLTemplateElement;
       });
       afterEach(() => {

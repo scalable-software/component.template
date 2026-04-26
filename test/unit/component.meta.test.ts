@@ -4,7 +4,7 @@ import {
   State,
   Operation,
   Event,
-  Gesture,
+  Gesture
 } from "@scalable.software/component.template";
 
 // Tag

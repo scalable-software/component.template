@@ -7,7 +7,7 @@ module.exports = function (wallaby) {
       "importmap/inject.js",
       "importmap/importmap.test.js",
       "node_modules/@scalable.software/**/dist/*.js",
-      "src/**/*.ts",
+      "src/**/*.ts"
     ],
     tests: ["test/unit/**/*.ts"],
     trace: true,
@@ -19,9 +19,9 @@ module.exports = function (wallaby) {
         inlineSources: true,
         baseUrl: "./",
         paths: {
-          "@scalable.software/component.template": ["./src/index.js"],
-        },
-      }),
-    },
+          "@scalable.software/component.template": ["./src/index.js"]
+        }
+      })
+    }
   };
 };

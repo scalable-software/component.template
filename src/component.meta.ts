@@ -30,7 +30,7 @@ export type Attributes = typeof Attributes;
  * @enum
  */
 export const State = {
-  ...Attributes,
+  ...Attributes
 } as const;
 
 /**

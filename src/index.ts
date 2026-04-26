@@ -5,7 +5,7 @@ export {
   State,
   Operation,
   Event,
-  Gesture,
+  Gesture
 } from "./component.meta.js";
 
 export { component } from "./component.js";
