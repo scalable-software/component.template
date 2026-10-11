@@ -44,9 +44,9 @@
     "karma-coverage-istanbul-reporter": "^3.0.3",
     "karma-jasmine": "^5.1.0",
     "karma-spec-reporter": "^0.0.36",
-    "typedoc": "^0.25.13",
-    "typedoc-plugin-merge-modules": "^5.1.0",
-    "typescript": "^5.4.5"
+    "typedoc": "^0.28.20",
+    "typedoc-plugin-merge-modules": "^7.0.0",
+    "typescript": "^6.0.3"
   },
   "dependencies": {
     "@scalable.software/component": "^0.3.0"
