@@ -16,6 +16,8 @@ Rules in this policy fall into three strengths. Read each rule with its strength
 
 When applying this policy to a new component, classify each rule before reconciling conflicts. A conflict with a principle is a defect; a conflict with a template means a variation point needs to be made explicit; a conflict with a convention is a documented deviation.
 
+The examples in this policy come from the component whose implementation shows a rule best: most from the pin, the one complete component in this package, and others from a component that has what the pin lacks, such as the title's data, or from an invented case. They show how a rule turns into a specification entry, code and tests. They are illustrations, not a model to copy: a component's states, operations, events, gestures, tests and specification come from its own requirements, never from the example's. Apply the rules, and the principles behind them, in the context of the component in front of you.
+
 ---
 
 ## 1) State Contract Must Be Declared in Specification
@@ -56,7 +58,7 @@ The classification of each declared state determines which sub-rules of this pol
 - **`attribute` present, `attribute.optional: false`** — activates explicit-default materialization (Section 5.1) and compulsory attribute reflection (Section 5.2). Null normalization does not apply.
 - **`attribute` absent** — Sections 3–7 do not apply. The state participates only in the non-attribute access contract (Section 8).
 - **`readonly: false`** — activates the public setter and the writable mutation path. If attribute-backed, the state participates in declarative mutation via `_attributeHandlers` (Section 6).
-- **`readonly: true`** — no public setter; if attribute-backed, declarative mutation is intercepted to restore the canonical value (Section 9.2). Internal mutation only.
+- **`readonly: true`** — no public setter; a state the component changes has a private setter instead (Section 9). If attribute-backed, declarative mutation is intercepted to restore the canonical value (Section 9.2). Internal mutation only.
 
 These are declared variation points of the template. A state whose classification activates a combination not described here is a signal that this list needs to be extended, not that the state deviates from the template.
 
@@ -71,6 +73,8 @@ Policy:
 
 - All `Attributes` are state.
 - Not all state is attribute-backed.
+- A state's values are primitives: strings, numbers, booleans or `null`. A primitive cannot be changed in place, so a state setter needs no copy of the value it stores.
+- A member whose value is an object or a list is not state but data, even when its values could be listed: it follows the data policy, whose mutation path clones the value and freezes the copy (see the data policy, Sections 2 and 8).
 
 ### 2.1) State Value Domains Must Be Defined in Metadata
 
@@ -158,7 +162,7 @@ Note: For boolean value domains such as `Locked`, `Object.values(Locked).include
 
 ### 2.2) State Validation Must Be Implemented in `<component>.validation.ts`
 
-For every state declared in the specification, the implementation must define validation logic in `<component>.validation.ts`.
+For every state that accepts a value from outside the component, the implementation must define validation logic in `<component>.validation.ts`. A state that only the component sets has no validator (see the validation policy, Section 9).
 
 This validation serves as the runtime enforcement layer for the value domains declared in `<component>.meta.ts`.
 
@@ -176,7 +180,7 @@ Example:
 import { Visibility, Status } from "./pin.meta.js";
 
 export class Validate {
-  public static visibility = (value: string) => {
+  public static visibility = (value: unknown) => {
     const valid = Object.values(Visibility).includes(value as Visibility);
     if (!valid) {
       throw new Error(`Invalid visibility value: ${value}`);
@@ -184,7 +188,7 @@ export class Validate {
     return value as Visibility;
   };
 
-  public static status = (value: string) => {
+  public static status = (value: unknown) => {
     const valid = Object.values(Status).includes(value as Status);
     if (!valid) {
       throw new Error(`Invalid status value: ${value}`);
@@ -249,49 +253,63 @@ The classification of an attribute-backed state as **optional** or **compulsory*
   The attribute may be absent. Initialization must not force materialization of the default attribute.
 
 - **Compulsory**: explicit representation  
-  The attribute must always have an explicit DOM representation. If missing, it must be materialized in `_initialize`.
+  The attribute must always have an explicit DOM representation. `_initialize` puts it in place through `_reflect`, which writes only when the attribute does not already show the state.
 
 ```typescript
 private _status: Status = Status.UNPINNED;
 
 protected _initialize = () => {
-  !this.hasAttribute(Attributes.STATUS) &&
-    this.setAttribute(Attributes.STATUS, this._status);
+  this._reflect(Attributes.STATUS, this._status);
 };
 ```
 
 
 ### 5.2) Attribute Reflection Policy Must Match Attribute Classification
 
+Reflection makes the attribute show the state. It is done by the base component's `_reflect(name, state, initial?)`, which writes only when the attribute differs from the state. The optional `initial` argument is the whole difference between the two classifications.
+
 - **Optional**: default may be represented by attribute absence  
-  The setter must manage both the state value and the presence of the attribute. Assigning the default removes the attribute. Because attribute absence corresponds to the default state, nullish incoming values must be normalized to the default before reflection. Assigning the default may remove the attribute.
+  The setter passes the default to `_reflect` as `initial`: the attribute is absent at the default and shows the value otherwise. Because attribute absence corresponds to the default state, nullish incoming values must be normalized to the default before reflection.
 
 ```typescript
-public set visibility(visibility: Visibility) {
-  visibility = visibility ?? Visibility.VISIBLE;
+public set visibility(visibility: Visibility | null) {
+  try {
+    // Normalize
+    visibility = visibility ?? Visibility.VISIBLE;
 
-  visibility = Validate.visibility(visibility);
+    // Validate
+    visibility = Validate.visibility(visibility);
 
-  if (this._visibility === visibility) return;
+    // Guard
+    if (this._visibility === visibility) return;
 
-  this._visibility = visibility;
-
-  visibility === Visibility.VISIBLE && this.removeAttribute(Attributes.VISIBILITY);
-  visibility === Visibility.HIDDEN && this.setAttribute(Attributes.VISIBILITY, visibility);
+    // Mutate
+    this._visibility = visibility;
+  } finally {
+    // Reflect
+    this._reflect(Attributes.VISIBILITY, this._visibility, Visibility.VISIBLE);
+  }
 }
 ```
 
 - **Compulsory**: current value must always be explicit  
-  The setter must always reflect the current value into the DOM using `setAttribute(...)`.
+  The setter calls `_reflect` without `initial`: the attribute always shows the current value.
 
 ```typescript
 public set status(status: Status) {
-  status = Validate.status(status);
+  try {
+    // Validate
+    status = Validate.status(status);
 
-  if (this._status === status) return;
+    // Guard
+    if (this._status === status) return;
 
-  this._status = status;
-  this.setAttribute(Attributes.STATUS, status);
+    // Mutate
+    this._status = status;
+  } finally {
+    // Reflect
+    this._reflect(Attributes.STATUS, this._status);
+  }
 }
 ```
 
@@ -305,16 +323,28 @@ Attribute-backed writable state has two entry styles:
 
 ```typescript
 protected _attributeHandlers = {
-  [Attributes.VISIBILITY]: (value: Visibility) => (this.visibility = value),
+  [Attributes.VISIBILITY]: (value: Visibility | null) => (this.visibility = value),
   [Attributes.STATUS]: (value: Status) => (this.status = value),
 };
 ```
 
 `_attributeHandlers` are only for declarative mutation. The setter is the single unification point for writable attribute-backed state.
 
+A declarative change reaches the setter after the DOM has already changed. The setter therefore reflects whatever it does with the value — accept, ignore, or reject — so that the attribute always shows the state (Section 7):
+
+| Declarative change | State | Attribute afterwards | Error |
+|---|---|---|---|
+| valid value | changes | the new value | — |
+| invalid value | unchanged | restored to the state | reported |
+| compulsory attribute removed | unchanged | restored to the state | reported |
+| optional attribute removed | default | absent | — |
+| optional attribute set to the default, no change | unchanged | absent | — |
+
+A rejected declarative change cannot throw to the code that changed the attribute: the browser reports the validation error instead. A rejected imperative assignment throws to its caller.
+
 For readonly attribute-backed state, declarative mutation must still be intercepted in `_attributeHandlers`, but it must not become authoritative. Instead, the implementation must restore the canonical internally owned value. See Section 9.2 for the readonly interceptor pattern.
 
-## 7) Public Mutation Order Must Be Normalize → Validate → Guard → Mutate
+## 7) Public Mutation Order Must Be Normalize → Validate → Guard → Mutate → Reflect
 
 For writable state, the public mutation path must follow this order:
 
@@ -322,30 +352,42 @@ For writable state, the public mutation path must follow this order:
 2. **Validate**
 3. **Guard**
 4. **Mutate**
+5. **Reflect** — attribute-backed state only
+6. **Dispatch** — the sixth stage, after the mutation path: it announces an accepted change and is defined by the event policy
 
 Validation must be performed by logic defined in `<component>.validation.ts`, against the value-domain metadata defined in `<component>.meta.ts`. If the normalized value is invalid, validation must fail and the mutation must not proceed.
 
-A mutation path may omit phases that are not needed for a given state, but the order of any phases that are used must remain Normalize → Validate → Guard → Mutate.
+A mutation path may omit phases that are not needed for a given state, but the order of any phases that are used must remain Normalize → Validate → Guard → Mutate → Reflect.
+
+For attribute-backed state, Reflect is not optional and always runs. The first four phases sit in a `try` block and Reflect in its `finally` block, so the attribute shows the state whether the value was accepted, ignored by the guard, or rejected by validation.
+
+- Reflect reads the backing field, not the setter's parameter: after a rejected value the parameter still holds the invalid input.
+- Reflect goes through `_reflect`, never a direct `setAttribute`: writing a value the attribute already has triggers `attributeChangedCallback` again, and a phase that always runs would loop.
+- The setter's parameter carries the name of its state: `set visibility(visibility)`, `set status(status)`. An event's detail can then be written in shorthand, `{ visibility }`. Validators and attribute handlers are generic and keep `value`.
+- Dispatch, and anything else that follows an accepted change, comes after the `finally` block. The guard's `return` and the validator's error both leave through `finally` without reaching it.
 
 Note: The normalization step for optional attribute-backed state handles a specific platform behavior: `attributeChangedCallback` passes `null` as the new value when an attribute is removed from the DOM. Without normalization, this `null` would reach validation and throw. Normalization ensures attribute removal is treated as equivalent to assigning the default value. Use `??` (nullish coalescing) rather than `||` (logical OR) so that only `null` and `undefined` are normalized — any other invalid value is left for validation to reject.
 
 Optional attribute-backed example:
 
 ```typescript
-public set visibility(visibility: Visibility) {
-  // Normalize — ?? handles null passed by attributeChangedCallback on attribute removal
-  visibility = visibility ?? Visibility.VISIBLE;
+public set visibility(visibility: Visibility | null) {
+  try {
+    // Normalize — ?? handles null passed by attributeChangedCallback on attribute removal
+    visibility = visibility ?? Visibility.VISIBLE;
 
-  // Validate
-  visibility = Validate.visibility(visibility);
+    // Validate
+    visibility = Validate.visibility(visibility);
 
-  // Guard
-  if (this._visibility === visibility) return;
+    // Guard
+    if (this._visibility === visibility) return;
 
-  // Mutate
-  this._visibility = visibility;
-  visibility === Visibility.VISIBLE && this.removeAttribute(Attributes.VISIBILITY);
-  visibility === Visibility.HIDDEN && this.setAttribute(Attributes.VISIBILITY, visibility);
+    // Mutate
+    this._visibility = visibility;
+  } finally {
+    // Reflect — absent when visible
+    this._reflect(Attributes.VISIBILITY, this._visibility, Visibility.VISIBLE);
+  }
 }
 ```
 
@@ -353,15 +395,19 @@ Compulsory attribute-backed example:
 
 ```typescript
 public set status(status: Status) {
-  // Validate
-  status = Validate.status(status);
+  try {
+    // Validate
+    status = Validate.status(status);
 
-  // Guard
-  if (this._status === status) return;
+    // Guard
+    if (this._status === status) return;
 
-  // Mutate
-  this._status = status;
-  this.setAttribute(Attributes.STATUS, status);
+    // Mutate
+    this._status = status;
+  } finally {
+    // Reflect — always present
+    this._reflect(Attributes.STATUS, this._status);
+  }
 }
 ```
 
@@ -391,13 +437,34 @@ This rule applies to both:
 
 Readonly therefore does **not** mean the value never changes. It means the value is **not writable from the outside**. The component implementation retains ownership of mutation.
 
+A state whose value the component computes is always readonly. Whether it is computed from the component's data, from another state, or from an editing surface, the outside has nothing to compute it from, so it must never set it. Its specification declares `readonly: true`, and its `description` says what it is computed from.
+
+How a readonly state is changed:
+
+- a readonly state that the component changes has a **private setter** next to its public getter, and the component changes it only through that setter
+- the private setter follows the mutation order of Section 7 without its Validate phase: the component produces the value itself, so the state has no validator (see the validation policy, Section 9)
+- `private` is checked by the compiler only: at runtime the setter exists, and a caller in plain JavaScript can still assign the state; its specs therefore check at compile time that an assignment from outside the component does not compile, with `@ts-expect-error` on that assignment
+- a readonly state that never changes after construction, such as a generated `id`, has no setter at all
+
+```typescript
+then("assigning `title.content` outside the title does not compile", () => {
+  const assign = () => {
+    // @ts-expect-error: the setter of `content` is private
+    title.content = Content.NAME;
+  };
+  expect(assign).toEqual(jasmine.any(Function));
+});
+```
+
+If the setter were made public, `@ts-expect-error` would have no error to expect, and the test file would no longer compile.
+
 ### 9.1) Non-Attribute Readonly State
 
 For non-attribute state with `readonly: true`:
 
 - expose a public getter
 - do not expose a public setter
-- internal logic may update the canonical value
+- when internal logic updates the canonical value, it does so through a private setter
 
 This is the standard pattern for runtime-only derived, lifecycle, or persistence state.
 
@@ -409,18 +476,20 @@ private _persisted: Persisted = Persisted.NONE;
 public get persisted(): Persisted {
   return this._persisted;
 }
+private set persisted(persisted: Persisted) {
+  // Guard
+  if (this._persisted === persisted) return;
 
-// Internal mutation only
-protected _markPersisted = (timestamp: Timestamp) => {
-  this._persisted = timestamp;
-};
+  // Mutate
+  this._persisted = persisted;
+}
 ```
 
 In this pattern:
 
 - the state is readable from the component API
 - the state is not reflected to the DOM
-- the state is mutated only by internal component logic
+- the state is mutated only by internal component logic, through its private setter
 
 ### 9.2) Attribute-Backed Readonly State
 
@@ -481,13 +550,11 @@ public get id(): Id {
 }
 
 protected _initialize = () => {
-  !this.hasAttribute(Attributes.ID) &&
-    this.setAttribute(Attributes.ID, this._id);
+  this._reflect(Attributes.ID, this._id);
 };
 
 protected _attributeHandlers = {
-  [Attributes.ID]: (value: Id) =>
-    value !== this._id && this.setAttribute(Attributes.ID, this._id),
+  [Attributes.ID]: () => this._reflect(Attributes.ID, this._id),
 };
 ```
 
@@ -497,6 +564,34 @@ In this pattern:
 - the attribute is reflected for DOM visibility
 - external mutation attempts do not become authoritative
 - the DOM is restored to the canonical value
+
+A readonly attribute-backed state that the component changes, such as a state computed from data, also has a private setter. Its Reflect phase sits in `finally`, as for a writable state (Section 7), and its attribute handler restores the canonical value instead of calling the setter.
+
+Example: `content`, computed by the `Title` from its name
+
+```typescript
+private _content: Content = Content.EMPTY;
+
+public get content(): Content {
+  return this._content;
+}
+private set content(content: Content) {
+  try {
+    // Guard
+    if (this._content === content) return;
+
+    // Mutate
+    this._content = content;
+  } finally {
+    // Reflect
+    this._reflect(Attributes.CONTENT, this._content);
+  }
+}
+
+protected _attributeHandlers = {
+  [Attributes.CONTENT]: () => this._reflect(Attributes.CONTENT, this._content),
+};
+```
 
 ### 9.3) Canonical Source of Truth May Be Stored or Computed
 
@@ -522,6 +617,15 @@ A computed getter is valid as long as:
 - the value is internally owned
 - no public setter is exposed
 - external mutation is not authoritative
+
+A computed state therefore takes one of two forms:
+
+| Form | When | What it has |
+|---|---|---|
+| **computed on every read** | a non-attribute state that is cheap to compute | a getter that computes the value, and no backing field and no setter |
+| **computed when its inputs change, and stored** | an attribute-backed state, or one whose change other code must see | a backing field, and a private setter that the component calls whenever an input changes (Section 9.2) |
+
+An attribute-backed computed state is always stored: its attribute must be reflected at the moment the value changes, and a getter that computes on read has no moment to do it.
 
 ### 9.4) Readonly Does Not Replace Optional / Compulsory Classification
 
@@ -607,10 +711,10 @@ Note: the examples below are intentionally state-only and exclude event-dispatch
     - Attribute-backed, optional, writable
     - Implicit default (`visible`), no forced `_initialize` materialization
     - Getter returns the canonical internal state
-    - Setter normalizes nullish input — including `null` passed by `attributeChangedCallback` when the attribute is removed — validates against metadata, and reflects/removes the attribute
+    - Setter normalizes nullish input — including `null` passed by `attributeChangedCallback` when the attribute is removed — validates against metadata, and always reflects: the attribute is absent when visible
 - `status`
     - Attribute-backed, compulsory, writable
-    - Explicit DOM representation, must be materialized in `_initialize` when absent
+    - Explicit DOM representation, put in place by `_initialize` through `_reflect`
     - Getter returns the canonical internal state
     - Setter validates against metadata and always keeps the attribute explicit
 - `locked`
@@ -620,7 +724,7 @@ Note: the examples below are intentionally state-only and exclude event-dispatch
 - `persisted`
     - Non-attribute, read-only
     - Runtime-only state, not in `Attributes`, not observed via callback pipeline
-    - Public getter only; updated internally by other component logic
+    - Public getter; a private setter for updates by internal component logic
 
 `<component>.validation.ts` for this specification:
 
@@ -628,19 +732,19 @@ Note: the examples below are intentionally state-only and exclude event-dispatch
 import { Visibility, Status, Locked } from "./pin.meta.js";
 
 export class Validate {
-  public static visibility = (value: string) => {
+  public static visibility = (value: unknown) => {
     const valid = Object.values(Visibility).includes(value as Visibility);
     if (!valid) throw new Error(`Invalid visibility value: ${value}`);
     return value as Visibility;
   };
 
-  public static status = (value: string) => {
+  public static status = (value: unknown) => {
     const valid = Object.values(Status).includes(value as Status);
     if (!valid) throw new Error(`Invalid status value: ${value}`);
     return value as Status;
   };
 
-  public static locked = (value: boolean) => {
+  public static locked = (value: unknown) => {
     const valid = Object.values(Locked).includes(value as Locked);
     if (!valid) throw new Error(`Invalid locked value: ${value}`);
     return value as Locked;
@@ -657,15 +761,22 @@ public get visibility(): Visibility {
   return this._visibility;
 }
 
-public set visibility(visibility: Visibility) {
-  visibility = visibility ?? Visibility.VISIBLE;
-  visibility = Validate.visibility(visibility);
+public set visibility(visibility: Visibility | null) {
+  try {
+    // Normalize
+    visibility = visibility ?? Visibility.VISIBLE;
+    // Validate
+    visibility = Validate.visibility(visibility);
 
-  if (this._visibility === visibility) return;
+    // Guard
+    if (this._visibility === visibility) return;
 
-  this._visibility = visibility;
-  visibility === Visibility.VISIBLE && this.removeAttribute(Attributes.VISIBILITY);
-  visibility === Visibility.HIDDEN && this.setAttribute(Attributes.VISIBILITY, visibility);
+    // Mutate
+    this._visibility = visibility;
+  } finally {
+    // Reflect
+    this._reflect(Attributes.VISIBILITY, this._visibility, Visibility.VISIBLE);
+  }
 }
 ```
 
@@ -680,17 +791,23 @@ public get status(): Status {
 }
 
 public set status(status: Status) {
-  status = Validate.status(status);
+  try {
+    // Validate
+    status = Validate.status(status);
 
-  if (this._status === status) return;
+    // Guard
+    if (this._status === status) return;
 
-  this._status = status;
-  this.setAttribute(Attributes.STATUS, status);
+    // Mutate
+    this._status = status;
+  } finally {
+    // Reflect
+    this._reflect(Attributes.STATUS, this._status);
+  }
 }
 
 protected _initialize = () => {
-  !this.hasAttribute(Attributes.STATUS) &&
-    this.setAttribute(Attributes.STATUS, this._status);
+  this._reflect(Attributes.STATUS, this._status);
 };
 ```
 
@@ -698,7 +815,7 @@ Declarative attribute wiring (`_attributeHandlers`):
 
 ```typescript
 protected _attributeHandlers = {
-  [Attributes.VISIBILITY]: (value: Visibility) => (this.visibility = value),
+  [Attributes.VISIBILITY]: (value: Visibility | null) => (this.visibility = value),
   [Attributes.STATUS]: (value: Status) => (this.status = value),
 };
 ```
@@ -711,8 +828,13 @@ private _persisted: Persisted = Persisted.NONE;
 public get persisted(): Persisted {
   return this._persisted;
 }
+private set persisted(persisted: Persisted) {
+  // Guard
+  if (this._persisted === persisted) return;
 
-// No setter since readonly
+  // Mutate
+  this._persisted = persisted;
+}
 ```
 
 `locked` implementation (non-attribute, writable):
@@ -725,10 +847,13 @@ public get locked(): Locked {
 }
 
 public set locked(locked: Locked) {
+  // Validate
   locked = Validate.locked(locked);
 
+  // Guard
   if (this._locked === locked) return;
 
+  // Mutate
   this._locked = locked;
 }
 ```
@@ -745,17 +870,19 @@ public set locked(locked: Locked) {
 6. Ensure validation enforces the value domains declared in `<component>.meta.ts`.
 7. If attribute-backed, declare the state in `Attributes` and include it in `State`.
 8. If non-attribute, declare the state in `State` but not in `Attributes`.
-9. If attribute-backed and compulsory, materialize the attribute in `_initialize()` when absent.
+9. If attribute-backed and compulsory, put the attribute in place in `_initialize()` through `_reflect`.
 10. If attribute-backed and optional, do not force default attribute materialization in `_initialize()`.
 11. If attribute-backed and writable, map declarative mutation in `_attributeHandlers`.
 12. If attribute-backed and readonly, intercept declarative mutation in `_attributeHandlers` and restore the canonical internal value.
-13. Implement the public mutation path using normalize → validate → guard → mutate.
+13. Implement the public mutation path using normalize → validate → guard → mutate → reflect; for attribute-backed state, reflect in a `finally` block, from the backing field, so it always runs.
 14. Validate incoming values against metadata value domains.
 15. If validation fails, the mutation must not proceed.
-16. For optional attribute-backed state, use `??` to normalize `null` and `undefined` to the default — this handles `attributeChangedCallback` passing `null` when an attribute is removed. Manage both value and attribute presence during reflection.
-17. For compulsory attribute-backed state, always keep the current value explicitly reflected in the DOM attribute using a single `setAttribute(...)` call.
+16. For optional attribute-backed state, use `??` to normalize `null` and `undefined` to the default — this handles `attributeChangedCallback` passing `null` when an attribute is removed. Pass the default to `_reflect` as `initial`.
+17. For compulsory attribute-backed state, call `_reflect` without `initial` so the attribute always shows the current value.
 18. For non-attribute state, choose external contract: read-only or writable.
-19. For readonly state, ensure mutation remains internally owned and external mutation is non-authoritative.
+19. For readonly state, ensure mutation remains internally owned and external mutation is non-authoritative: a state the component changes has a private setter, without a validator, and its specs check at compile time that it cannot be assigned from outside.
+20. Declare every state the component computes as readonly; store it, with a private setter, when it is attribute-backed.
+21. Keep every state's values primitive; declare a member whose value is an object or a list as data.
 
 ---
 

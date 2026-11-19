@@ -16,6 +16,8 @@ Rules in this policy fall into three strengths. Read each rule with its strength
 
 When applying this policy to a new component, classify each rule before reconciling conflicts. A conflict with a principle is a defect; a conflict with a template means a variation point needs to be made explicit; a conflict with a convention is a documented deviation.
 
+The examples in this policy come from the component whose implementation shows a rule best: most from the pin, the one complete component in this package, and others from a component that has what the pin lacks, such as the title's data, or from an invented case. They show how a rule turns into a specification entry, code and tests. They are illustrations, not a model to copy: a component's states, operations, events, gestures, tests and specification come from its own requirements, never from the example's. Apply the rules, and the principles behind them, in the context of the component in front of you.
+
 ---
 
 # 1) Composition Contract Must Be Declared in the Specification
@@ -37,6 +39,7 @@ A composition definition may also include:
 - `id`
 - `class`
 - `cached`
+- `attributes`
 
 Interpretation:
 
@@ -44,6 +47,7 @@ Interpretation:
 - `type` defines the structural or element kind used to realize that part
 - `contains` defines the direct child parts of that structural part in the composition contract
 - `id` and `class` define structural identity where relevant to template realization
+- `attributes` declares the attributes of the part that carry meaning, such as `role` and `tabindex` (Section 10)
 - if `contains` is absent, the part is treated as a leaf part in the declared composition
 - if `cached` is `true`, the implementation must create a cached element reference for that part on the component instance
 - if `cached` is absent or `false`, the part is realized in the template but does not require a cached runtime reference
@@ -65,7 +69,8 @@ Example specification:
     "contains": ["svg.pinned", "svg.unpinned"],
     "type": "div",
     "class": "icon",
-    "cached": true
+    "cached": true,
+    "attributes": { "tabindex": "0", "role": "button" }
   },
   "svg.pinned": {
     "description": "The SVG icon used for the pinned mode.",
@@ -99,6 +104,7 @@ Policy:
 - composition must not be used to declare interaction input
 - composition must not be used to declare semantic outcome
 - composition must not be used to declare presentation attributes such as `fill`, `height`, `width`, or `viewBox` — these belong to CSS or the template
+- composition may declare attributes that carry meaning, such as `role` and `tabindex` (Section 10)
 
 Examples of valid composition entries:
 
@@ -154,7 +160,7 @@ Part names trace directly to template elements and CSS selectors:
 | Part name | Template element | CSS selector |
 |---|---|---|
 | `template` | `<template id="pin-button">` | — |
-| `div.icon` | `<div class="icon">` | `.icon` |
+| `div.icon` | `<div class="icon" tabindex="0" role="button">` | `.icon` |
 | `svg.pinned` | `<svg class="pinned">` | `.pinned` or `svg.pinned` |
 | `svg.unpinned` | `<svg class="unpinned">` | `.unpinned` or `svg.unpinned` |
 
@@ -162,7 +168,7 @@ Example:
 
 ```html
 <template id="pin-button">
-  <div class="icon">
+  <div class="icon" tabindex="0" role="button">
     <svg class="pinned">...</svg>
     <svg class="unpinned">...</svg>
   </div>
@@ -211,14 +217,15 @@ Example metadata and configuration pattern:
 
 ```typescript
 export const Tag = "pin-button" as const;
+export const CSS = "pin.style.css" as const;
 
-export const configuration = {
+export const configuration: Configuration = {
   url: import.meta.url,
   template: {
     id: Tag,
   },
   css: {
-    name: "pin.style.css",
+    name: CSS,
   },
 } as const;
 ```
@@ -227,7 +234,7 @@ Example template:
 
 ```html
 <template id="pin-button">
-  <div class="icon">...</div>
+  <div class="icon" tabindex="0" role="button">...</div>
 </template>
 ```
 
@@ -237,7 +244,7 @@ This predictable transformation keeps the root composition identity directly tra
 
 Any composition part declared with `cached: true` must be cached on the component instance as an explicit element reference.
 
-This cached structure is the component's runtime access layer for realized composition. It is derived from the template structure, but it does not need to reproduce the full composition tree.
+This cached structure is the component's runtime access layer for realized composition. It is derived from the template structure and follows its nesting (Section 6), but it holds only the parts that runtime logic uses.
 
 Policy:
 
@@ -245,8 +252,8 @@ Policy:
 - cached references must be derived from the realized template structure
 - cached references form the runtime access vocabulary for internal structural parts used by the component
 - cached references must be explicit rather than relying on repeated ad hoc selector queries at the point of use
-- the cache structure does not need to mirror the full composition nesting hierarchy
-- a flat cache is valid when it preserves clear and stable traceability back to the declared composition and realized template
+- the cache structure must follow the nesting of the template: a cached reference sits in the cache where its part sits in the template (Section 6)
+- the cache holds only the `cached: true` parts and the groups needed to reach them; it does not reproduce the full composition tree
 
 Example pattern:
 
@@ -258,11 +265,15 @@ Example with multiple cached parts:
 
 ```typescript
 protected elements = {
-  label: null as HTMLElement | null,
-  name: null as HTMLInputElement | null,
-  edit: null as HTMLElement | null,
-  save: null as HTMLElement | null,
-  cancel: null as HTMLElement | null,
+  metadata: {
+    label: null as HTMLElement | null,
+    name: null as HTMLInputElement | null,
+  },
+  tasks: {
+    edit: null as HTMLElement | null,
+    save: null as HTMLElement | null,
+    cancel: null as HTMLElement | null,
+  },
 };
 ```
 
@@ -271,36 +282,65 @@ Benefits:
 - prevents repeated querying
 - makes runtime dependencies explicit
 - keeps gesture wiring, DOM updates, and internal synchronization traceable to composition
-- avoids forcing the runtime cache to duplicate the full composition tree when that would add structural noise without improving clarity
+- lets a reader find a cached reference by looking at the template, and find its element by looking at the cache
 
 The composition contract defines the full structure. The runtime cache defines only the internal structural references that runtime behavior depends on, as declared by `cached: true` in the specification.
 
-# 6) Cached Element Reference Names Must Prefer the Deepest Unambiguous Composition Name
+## 5.1) The Cache Is Filled When the Component Is Connected
 
-When a composition part is cached for runtime use, its cached reference name should be derived from the class portion of its CSS-selector part name.
+The cache is filled in `_cache`, a hook the base component calls each time the component is connected to the page, before `_initialize` and `_addEventListeners`.
 
-This keeps cached references compact while preserving traceability back to the composition contract and realized template.
+```typescript
+protected elements: { icon: HTMLDivElement | null } = { icon: null };
+
+protected _cache = () => {
+  this.elements.icon = this.root.querySelector(".icon");
+};
+```
+
+Policy:
+
+- every cached reference must be assigned in `_cache`, and nowhere else
+- every cached reference is `null` until the component is connected, and is typed to say so
+- code that can run before the component is connected must not depend on a cached reference: a setter can run that early, when its attribute is present in markup or its property is assigned before the element is added to the page
+- code that uses a cached reference must allow for `null`, as in `this.elements.icon?.addEventListener(...)`
+
+# 6) The Cache Must Follow the Nesting of the Template
+
+The cache is nested the way the template is nested. A cached reference is named after the class portion of its CSS-selector part name, and it sits inside a group for each part that contains it.
+
+This lets a reader go from the template to the cache and back without a lookup: what is inside `div.metadata` in the template is inside `elements.metadata` in the cache.
 
 Policy:
 
 - cached element reference names must be derived from declared composition parts
-- the preferred cached name is the class portion of the part name when it uniquely identifies the runtime-relevant part within the cache
-- full structural path naming is not required when the class portion is already unambiguous
-- if two or more runtime-relevant parts would produce the same cached name, the implementation must add enough qualification to make the names distinct
+- the cached name is the class portion of the part name
+- a cached reference must sit inside one group for each composition part that contains it, outermost first, in the order of the template
+- a group is a plain object named after the class portion of the containing part; it is not a reference to that element, and the containing part needs no `cached: true` to have one
+- the `template` part has no group: its direct children sit at the top level of the cache
+- a containing part that is the only child of its parent has no group either: a wrapper such as `div.panel` distinguishes nothing, so what it contains sits one level up
+- a group exists only when it leads to a cached reference
+- if two cached parts in the same group would produce the same name, the implementation must add enough qualification to make the names distinct
 - cached reference naming must remain stable and predictable for the declared composition
-- cached reference names should remain as small as possible while still being unambiguous
 
-Preferred pattern:
+A part directly under the template:
 
-- composition part: `div.icon`
-- template realization: `<div class="icon">`
+- composition part: `div.icon`, contained by `template`
+- template realization: `<div class="icon" tabindex="0" role="button">`
 - runtime cache: `elements.icon`
 
-Also valid when qualification is required:
+Parts inside containers:
+
+- composition: `template` contains `div.panel`; `div.panel` contains `div.metadata` and `div.tasks`
+- `div.metadata` contains `span.label` and `input.name`; `div.tasks` contains `button.edit`, `button.cancel` and `button.save`
+- runtime cache: `elements.metadata.label`, `elements.metadata.name`, `elements.tasks.edit`, `elements.tasks.cancel`, `elements.tasks.save`
+- `div.panel` is the only child of `template`, so it has no group
+
+Nesting keeps most names distinct without qualification:
 
 - composition part: `span.title` inside `div.header`
 - composition part: `span.title` inside `div.dialog`
-- possible runtime cache: `elements.headerTitle`, `elements.dialogTitle`
+- runtime cache: `elements.header.title`, `elements.dialog.title`
 
 Examples:
 
@@ -310,21 +350,26 @@ protected elements: { icon: HTMLDivElement | null } = { icon: null };
 
 ```typescript
 protected elements = {
-  label: null as HTMLElement | null,
-  name: null as HTMLInputElement | null,
-  edit: null as HTMLElement | null,
-  save: null as HTMLElement | null,
-  cancel: null as HTMLElement | null,
+  metadata: {
+    label: null as HTMLElement | null,
+    name: null as HTMLInputElement | null,
+  },
+  tasks: {
+    edit: null as HTMLElement | null,
+    save: null as HTMLElement | null,
+    cancel: null as HTMLElement | null,
+  },
 };
 ```
 
 In these examples:
 
-- `elements.icon` is derived from part `div.icon` — the class `icon` is the cached name
-- `elements.label` is derived from part `span.label` — the class `label` is the cached name
-- `elements.panel.metadata.label` is not required because `label` is already unambiguous
+- `elements.icon` is derived from part `div.icon` — the class `icon` is the cached name, and `template` adds no group
+- `elements.metadata.label` is derived from part `span.label` inside `div.metadata` — the class `label` is the cached name, and the class `metadata` names its group
+- `elements.panel.metadata.label` is wrong: `div.panel` is the only child of `template`, so it adds no group
+- `elements.label` is wrong: it hides that the label sits inside `div.metadata`
 
-The composition contract defines the full structural hierarchy. Cached element reference names define the smallest unambiguous runtime vocabulary derived from that hierarchy.
+The composition contract defines the full structural hierarchy. The cache repeats the part of that hierarchy that leads to a cached reference, so the template and the cache are read the same way.
 
 # 7) Only Composition Parts Declared with `cached: true` Need Cached References
 
@@ -351,7 +396,7 @@ In `Title`:
 - `span.label` is declared with `cached: true` because runtime logic writes text content to it
 - `input.name` is declared with `cached: true` because runtime logic reads, writes, and focuses the input
 - `button.edit`, `button.save`, and `button.cancel` are declared with `cached: true` because runtime gesture listeners attach to them
-- higher structural containers such as `div.panel`, `div.metadata`, and `div.tasks` do not require `cached: true` when runtime logic does not directly depend on them
+- higher structural containers such as `div.panel`, `div.metadata`, and `div.tasks` do not require `cached: true` when runtime logic does not directly depend on them; `div.metadata` and `div.tasks` appear in the cache as groups, not as references (Section 6)
 
 Examples:
 
@@ -361,15 +406,19 @@ protected elements: { icon: HTMLDivElement | null } = { icon: null };
 
 ```typescript
 protected elements = {
-  label: null as HTMLElement | null,
-  name: null as HTMLInputElement | null,
-  edit: null as HTMLElement | null,
-  save: null as HTMLElement | null,
-  cancel: null as HTMLElement | null,
+  metadata: {
+    label: null as HTMLElement | null,
+    name: null as HTMLInputElement | null,
+  },
+  tasks: {
+    edit: null as HTMLElement | null,
+    save: null as HTMLElement | null,
+    cancel: null as HTMLElement | null,
+  },
 };
 ```
 
-The composition specification defines the full internal structure. The element cache defines only the `cached: true` subset of that structure.
+The composition specification defines the full internal structure. The element cache defines only the `cached: true` subset of that structure, nested as the template nests it.
 
 # 8) Composition Must Provide Stable Structural Targets for Other Policies
 
@@ -472,6 +521,8 @@ Policy:
 - composition may identify structural identity such as `class` or `id` when that identity is part of template realization
 - composition must not define presentation rules, visual appearance, or styling behavior
 - composition must not declare presentation attributes such as `fill`, `height`, `width`, `viewBox`, or `stroke` — these belong to CSS or the template
+- composition declares, under `attributes`, the attributes that carry meaning: if behavior or accessibility would break when the attribute is removed, it is part of the contract
+- every attribute declared under `attributes` must be realized in the template with the declared value
 - CSS must remain the authoritative layer for presentation concerns
 - state-reflective styling may target composition parts, but the styling logic itself belongs to CSS rather than to composition
 - composition may declare that a structural part exists; CSS may define how that part appears in different states or interaction conditions
@@ -517,6 +568,7 @@ Policy:
 
 - declared composition must be realized through `<component>.template.html`
 - the component class must use the framework template-loading mechanism to realize that template
+- the host must load the template before the component is defined: a component constructed without its template cannot build its structure
 - component logic must not become a competing source of structural truth by manually constructing the declared internal DOM tree
 - runtime logic may cache, read, update, or attach listeners to realized structural parts, but it should depend on the realized template rather than constructing those parts imperatively
 - composition remains declarative when structure is defined in the template and loaded through the framework mechanism
@@ -534,13 +586,13 @@ constructor() {
 Example configuration:
 
 ```typescript
-export const configuration = {
+export const configuration: Configuration = {
   url: import.meta.url,
   template: {
     id: Tag,
   },
   css: {
-    name: "pin.style.css",
+    name: CSS,
   },
 } as const;
 ```
@@ -566,6 +618,49 @@ realized internal DOM structure
 
 The framework template mechanism is the authoritative path by which declared composition becomes actual component structure.
 
+## 11.1) The Template Hides the Component Until Its Stylesheet Applies
+
+The framework adds the stylesheet as a `<link>` and clones the template at once, but the stylesheet loads later. Until it applies, the realized composition is drawn in the browser's default look, and when it arrives every transition it declares plays from that look. This happens on the first appearance of every component, at the start of the application as much as later, and again whenever the browser must fetch the stylesheet anew. So every component hides itself until its stylesheet applies.
+
+The template opens with the gate:
+
+```html
+<template id="pin-button">
+  <style>:host { display: none; }</style>
+  ...
+</template>
+```
+
+The stylesheet reveals the component in a rule of its own:
+
+```css
+/* Reveals the pin once this stylesheet applies; the template hides it until then */
+:host(:defined) {
+  display: inline-block;
+}
+
+:host {
+  --button-background-color: #ffffff;
+  ...
+}
+
+/* State Visibility */
+:host([visibility="hidden"]) {
+  display: none;
+}
+```
+
+Policy:
+
+- the template's first child is the gate, `<style>:host { display: none; }</style>`, and it is the only presentation the template carries
+- the gate hides with `display`, never with `visibility` or `opacity`: under `display: none` no transition starts when the stylesheet arrives, and the component takes no space before it is finished
+- the stylesheet reveals the component in a rule of its own, `:host(:defined) { display: … }`, which outranks the gate; the custom properties stay in `:host`, so that a `:host` rule in a media query, such as the dark theme, can still override them
+- every rule that hides the host for a state comes after the reveal rule: the two are equally specific, so the order decides
+- the reveal is neither delayed nor animated
+- a stylesheet that replaces the component's own must carry the reveal rule, or the component stays hidden
+- the gate is template infrastructure, like the stylesheet link: it is not a composition part and is not declared in the specification
+- a `:host(:not(:defined))` rule in the stylesheet cannot replace the gate: inside the shadow root the host is always defined, and the rule applies only once the stylesheet has arrived
+
 # 12) Composition Changes Must Be Treated as Contract Changes
 
 If a declared composition part is referenced by runtime logic, styling, or other framework policies, changing that part is a contract-level change.
@@ -586,7 +681,7 @@ Examples of contract-impacting changes:
 - renaming `div.icon` to `button.icon`
 - changing `.icon` to a different structural identity without updating runtime references
 - removing `svg.pinned` while CSS still depends on `.pinned`
-- renaming `span.label` to `span.title` while runtime logic still writes to `elements.label`
+- renaming `span.label` to `span.title` while runtime logic still writes to `elements.metadata.label`
 - changing the structure so that `button.edit`, `button.save`, or `button.cancel` no longer match their cached references or listener targets
 
 Examples of layers that may require coordinated updates:
@@ -619,7 +714,8 @@ Specification fragment:
       "contains": ["svg.pinned", "svg.unpinned"],
       "type": "div",
       "class": "icon",
-      "cached": true
+      "cached": true,
+      "attributes": { "tabindex": "0", "role": "button" }
     },
     "svg.pinned": {
       "description": "The SVG icon used for the pinned mode.",
@@ -642,6 +738,7 @@ How this specification is implemented:
 - the framework template mechanism is the authoritative realization path for declared composition
 - only the composition parts declared with `cached: true` are cached as explicit element references
 - cached element reference names are derived from the class portion of the CSS-selector part name
+- the cache is nested as the template is nested; `div.icon` is a direct child of `template`, so it sits at the top level
 - other policies such as gestures, state-reflective styling, and runtime DOM synchronization depend on the realized composition structure, but do not redefine it
 
 Applied to `Pin`:
@@ -653,8 +750,9 @@ Applied to `Pin`:
     - loaded through component configuration with `template: { id: Tag }`
 - `div.icon`
     - declared as a structural child of `template` with `cached: true`
-    - realized by `<div class="icon">`
-    - cached as `elements.icon` — the class `icon` is the cached name
+    - declared with the attributes `tabindex` and `role`, because the keyboard gesture depends on them
+    - realized by `<div class="icon" tabindex="0" role="button">`
+    - cached as `elements.icon` — the class `icon` is the cached name, assigned in `_cache`
     - used as the runtime gesture target
 - `svg.pinned`
     - declared as a structural child of `div.icon`
@@ -669,18 +767,19 @@ Implementation:
 
 ```typescript
 export const Tag = "pin-button" as const;
+export const CSS = "pin.style.css" as const;
 
-export const configuration = {
+export const configuration: Configuration = {
   url: import.meta.url,
   template: {
     id: Tag,
   },
   css: {
-    name: "pin.style.css",
+    name: CSS,
   },
 } as const;
 
-export class Pin extends Component {
+export class Pin extends Component implements Meta {
   protected elements: { icon: HTMLDivElement | null } = { icon: null };
 
   public static Template = new Template(import.meta.url);
@@ -695,7 +794,7 @@ Template:
 
 ```html
 <template id="pin-button">
-  <div class="icon">
+  <div class="icon" tabindex="0" role="button">
     <svg class="pinned">...</svg>
     <svg class="unpinned">...</svg>
   </div>
@@ -739,28 +838,29 @@ A compliant component must:
 2. Define each composition part using the required specification contract.
 3. Name composition parts using CSS-selector notation — `{type}.{class}` when a class distinguishes the part, or `{type}` when the type alone is sufficient.
 4. Distinguish composition from state, data, operations, events, and gestures.
-5. Avoid declaring presentation attributes such as `fill`, `height`, `width`, or `viewBox` in composition — these belong to CSS or the template.
+5. Avoid declaring presentation attributes such as `fill`, `height`, `width`, or `viewBox` in composition — these belong to CSS or the template. Declare under `attributes` only the attributes that carry meaning, such as `role` and `tabindex`, and realize each in the template.
 6. Avoid declaring framework-injected infrastructure such as stylesheet link elements as composition parts.
 7. Realize every declared composition part in `<component>.template.html`.
 8. Preserve declared parent-child containment relationships in the realized template.
 9. Keep root template identity predictably aligned across specification, metadata, configuration, and template.
 10. Use the framework template-loading mechanism as the authoritative realization path for declared composition.
-11. Avoid manual component-side DOM construction as a competing source of structural truth for declared composition.
-12. Declare `cached: true` on every composition part that runtime logic reads from, writes to, attaches listeners to, or otherwise depends on as an explicit DOM target.
-13. Cache every composition part declared with `cached: true` as an explicit element reference on the component instance.
-14. Derive cached element reference names from the class portion of the CSS-selector part name.
-15. Add qualification to cached element reference names only when needed to avoid ambiguity.
-16. Cache only the `cached: true` subset of declared composition.
-17. Treat uncached composition parts as still part of the structural contract when they are realized in the template.
-18. Provide stable structural targets for gesture wiring, DOM synchronization, and CSS/state-reflective styling.
-19. Keep runtime logic dependent on realized composition rather than inventing ad hoc structural targets.
-20. Prefer structural minimalism in the declared composition.
-21. Avoid declaring incidental markup that carries no meaningful contract value.
-22. Keep composition separate from visual styling concerns.
-23. Keep CSS as the authoritative layer for presentation.
-24. Treat renames, removals, reparenting, or structural identity changes of declared composition parts as contract changes.
-25. Reflect composition contract changes consistently across specification, template, runtime cache, styling, and dependent policy implementations.
-26. Preserve cross-layer traceability from composition specification to template realization to runtime access.
+11. Open the template with the gate, `<style>:host { display: none; }</style>`, and reveal the component in the stylesheet with `:host(:defined)`, before every rule that hides the host for a state.
+12. Avoid manual component-side DOM construction as a competing source of structural truth for declared composition.
+13. Declare `cached: true` on every composition part that runtime logic reads from, writes to, attaches listeners to, or otherwise depends on as an explicit DOM target. Assign every cached reference in `_cache`, and never depend on one in code that can run before the component is connected.
+14. Cache every composition part declared with `cached: true` as an explicit element reference on the component instance.
+15. Derive cached element reference names from the class portion of the CSS-selector part name, adding qualification only when two cached parts in the same group would share a name.
+16. Nest the cache as the template is nested: put each cached reference inside a group for each part that contains it, with no group for `template` or for a container that is the only child of its parent.
+17. Cache only the `cached: true` subset of declared composition.
+18. Treat uncached composition parts as still part of the structural contract when they are realized in the template.
+19. Provide stable structural targets for gesture wiring, DOM synchronization, and CSS/state-reflective styling.
+20. Keep runtime logic dependent on realized composition rather than inventing ad hoc structural targets.
+21. Prefer structural minimalism in the declared composition.
+22. Avoid declaring incidental markup that carries no meaningful contract value.
+23. Keep composition separate from visual styling concerns.
+24. Keep CSS as the authoritative layer for presentation.
+25. Treat renames, removals, reparenting, or structural identity changes of declared composition parts as contract changes.
+26. Reflect composition contract changes consistently across specification, template, runtime cache, styling, and dependent policy implementations.
+27. Preserve cross-layer traceability from composition specification to template realization to runtime access.
 
 ---
 
@@ -819,6 +919,14 @@ JSON Schema:
       "cached": {
         "type": "boolean",
         "description": "When true, the implementation must create a cached element reference for this part on the component instance. Declare cached: true on every part that runtime logic reads from, writes to, or attaches listeners to."
+      },
+      "attributes": {
+        "type": "object",
+        "description": "Attributes of the part that carry meaning: behavior or accessibility would break if one were removed, for example role and tabindex. Presentation attributes such as fill, height, width and viewBox are not declared here.",
+        "minProperties": 1,
+        "additionalProperties": {
+          "type": "string"
+        }
       }
     }
   }
@@ -841,7 +949,8 @@ Example JSON:
       "contains": ["svg.pinned", "svg.unpinned"],
       "type": "div",
       "class": "icon",
-      "cached": true
+      "cached": true,
+      "attributes": { "tabindex": "0", "role": "button" }
     },
     "svg.pinned": {
       "description": "The SVG icon used for the pinned mode.",

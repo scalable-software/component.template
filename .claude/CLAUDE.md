@@ -1,75 +1,104 @@
-# Web Component
+# Pin
 
-A web component built on the `@scalable.software/component` framework. The policies in `.claude/context/` govern how component specifications are transformed into solid implementations.
+This repository is `@scalable.software/pin`: the `<pin-button>` web component. It is also the **reference component**, and it holds the canon.
 
-## How This Project Works
+The guide, the policies and the workflows in `.claude/` hold for every component, and each repository applies them in the context of its own component. They are illustrated with the implementation of whichever component shows a point best: mostly the pin, the one complete component in the package, and others, such as the title, where the pin has no example. The pin shows how the pieces link: a rule, the specification entry it shapes, the code that follows it and the test that proves it. It is an illustration, not a model to copy: another component's states, operations, events, gestures, tests and specification come from its own requirements, never from the pin's. When the policies and the code here disagree, one of them is wrong; say so.
 
-Every component is developed through a specification-driven, test-first pipeline. The specification declares the public contract; the implementation honors it; the tests verify it; the commit history records the transformation.
+The package in `.claude/` is the canon, and this repository holds it. It is changed here, then copied to every web component. Propose a change to it here, as to any document in `.claude/`; this repository's own file is this `CLAUDE.md`.
 
-When working on a component, translate the specification into an implementation that conforms to all applicable policies — without inventing structure, behavior, or vocabulary the specification does not declare.
+It is built on the base component, `@scalable.software/component`, which lives in another repository. Never change it from here. When the pin needs something from it, describe the change for the human.
 
-## Translation Pipeline
+## Starting a session
 
-```
-<component>.specifications.json     ← source of truth
-        │
-        ├─→ <component>.meta.ts            vocabulary + value-domain types
-        ├─→ <component>.validation.ts      Validate class — runtime enforcement
-        ├─→ <component>.ts                 state, operations, events, gestures
-        ├─→ <component>.template.html      realized composition
-        └─→ <component>.style.css          realized presentation
+The human opens a session with **`Yo`**. That is not the signal to start working.
 
-verified by:
-        test/unit/<component>.meta.test.ts        — vocabulary tests
-        test/unit/<component>.validation.test.ts  — validator tests
-        test/unit/<component>.test.ts             — component behavioral tests
+1. **Prepare.** Check the branch and the working tree. Work out which piece of work comes next. Read only the documents that work needs (see "Where to find what"). Change nothing.
+2. **Report.** Say what you will work on, your plan, what you checked, which documents you read, and what is unclear. Then stop.
+3. **Start on `Go`.** Only the word `Go` is approval; it may be scoped ("Go, first step only").
 
-recorded by:
-        FAIL/PASS commit pairs, policy-ordered, one prefix per commit
-        DOCUMENTATION → FEATURE closes each feature branch
-```
+The pin has no bucket on the Planner boards. Its work comes from the human directly, without a card (`governance.md` §5): it starts at step 1 of the path and writes nothing on the board.
 
-Names predictably transform across layers. A state named `visibility` in the specification becomes `Attributes.VISIBILITY` + `State.VISIBILITY` in metadata, `Validate.visibility` in validation, `get visibility()`/`set visibility(...)` on the class, `state(State.VISIBILITY, ...)` in tests, and `STATE: ...` in commits.
+## What always applies
 
-## Implementation Order
+- **Propose before changing a document in `.claude/`.** Say what you would change and why, and change it when the human agrees.
+- **Test first.** See a spec fail before writing the code that makes it pass.
+- **One concern in each commit,** named by its prefix. Commit when the human asks.
+- **The human merges and releases.** Do not push, open or merge a pull request, open an issue, or release unless asked.
+- **Keep the example identical.** `.claude/examples/` holds an exact copy of `src/`, `specifications/` and `test/`. When one of those changes, copy the change in the same branch. Every other repository reads the pin through that copy.
+- **Check, then claim.** Run the suite or try it in a browser before saying something works, and say what you did not check.
 
-Within any behavioral feature, work proceeds top-down through the policy hierarchy:
+## Commands
 
-```
-COMPOSITION → STATE → VALIDATION → OPERATION → EVENT → STYLE → GESTURE → DOCUMENTATION → FEATURE
-```
+| Command | What it does |
+|---|---|
+| `npm test` | checks the specification, compiles, and runs the suite in headless Chrome |
+| `npm run check.specification` | checks the specification against the schema in each policy |
+| `npm run build` | compiles to `dist/` |
+| `npm run serve` | builds and opens the demo page |
+| `npm run document` | regenerates the API docs in `docs/` |
+| `npm run clean.test` | removes compiled test output; run it after a failed `npm test` |
 
-Each layer depends on the layers above. CSS-only features collapse to `STYLE → FEATURE`. See `@context/workflow.md` for the full sequence and per-layer commit format.
+## Layout
 
-## Implementation Policies
+| Path | Holds |
+|---|---|
+| `specifications/` | the requirements file and the specification |
+| `src/` | the component, its metadata, its validators, its template and its stylesheet |
+| `test/unit/` | three test files: metadata, validation, component |
+| `demo/` | the demo page |
+| `docs/` | generated API docs; never edit by hand |
+| `.claude/` | the guide, the policies, the add-on guides, the workflows, the skills, the example copy |
 
-Each policy file opens with a **How to Read This Policy** rubric that classifies its rules as one of three strengths:
+## Where to find what
 
-- **Principles** — non-negotiable; derived from framework correctness or TDD discipline.
-- **Templates** — invariant skeletons with explicit variation points based on declared classification (e.g., attribute-backed vs non-attribute, readonly vs writable, payload-bearing vs payload-free).
-- **Conventions** — canonical defaults that keep implementations readable across components.
+Three sets of documents describe how components are built here. **Do not read them up front.** Each is long. Read the one that matches the work in front of you, when that work starts, and read only the part you need.
 
-When a new component's shape conflicts with a rule, classify the rule before reconciling: a principle conflict is a defect; a template conflict means a variation point needs to be made explicit; a convention conflict is a documented deviation.
+### The guide: why it works this way
 
-### Specification-driven (per component)
+`.claude/guide/framework.md` explains the framework to someone new, one section for each construct: Composition, State, Data, Validation, Operations, Events, Gestures.
 
-@context/composition.md — structural parts and cached references
-@context/data.md — canonical component-owned content
-@context/state.md — runtime mode, visibility, status, persistence
-@context/operation.md — public imperative actions
-@context/event.md — observable semantic outcomes
-@context/gesture.md — interaction inputs
-@context/validation.md — runtime enforcement of declared value domains
+Read a section when you need to understand how a construct works before changing it, or when you have to explain it to someone.
 
-### Cross-cutting (every component)
+### The policies: what a component must look like
 
-@context/testing.md — test file structure, BDD vocabulary, coverage contracts
-@context/workflow.md — branching, commit sequencing, TDD discipline
+One file for each construct, in `.claude/policies/`. Each ends with a checklist. All except `validation.md` also end with the schema for their section of the specification.
 
-## Working Principles
+| Before you add or change… | Read |
+|---|---|
+| a part of the template, or a cached element | `composition.md` |
+| data: its type, its validator, or an operation that creates, loads or changes it | `data.md` |
+| a state, its setter or its attribute | `state.md` |
+| a validator, or anything that rejects a value | `validation.md` |
+| an operation | `operation.md` |
+| an event, or an `on…` property | `event.md` |
+| a gesture, a listener or a handler | `gesture.md` |
 
-- **Test first.** Every behavioral change starts with a failing test. The FAIL commit precedes the PASS commit. No exceptions.
-- **One feature per branch.** Behavioral work is never committed directly to main.
-- **One concern per commit.** Every commit message begins with a canonical prefix.
-- **Trace names across layers.** A specification name reappears unchanged — modulo standard transformations — in metadata, validation, class API, tests, and commits.
-- **Specification is authoritative.** Implementations do not invent structure, behavior, or vocabulary the specification does not declare. If a component's shape does not fit a policy rule, examine the policy's variation points — do not bypass them.
+`data.md` is illustrated with the title, not the pin, because the pin has no data.
+
+### The add-ons: how a component uses one
+
+One file for each add-on, in `.claude/add-ons/`. Each explains the pieces an add-on brings, who owns each of them, and how they work together. They are guides, not policies: they have no checklist to audit against and no schema. The pin uses no add-on.
+
+| When you… | Read |
+|---|---|
+| add a text that depends on the language, or change how a component follows the language | `localizer.md` |
+
+### The workflows: how the work is done
+
+One file for each stage, in `.claude/workflow/`.
+
+| When you… | Read |
+|---|---|
+| start a piece of work, create a branch, or write a commit | `workflow.md` |
+| write or change a user story | `requirements.md` |
+| change the specification | `specifications.md` |
+| write tests, or decide what goes in one commit | `testing.md` |
+| open an issue or a pull request, or prepare a release | `github.md` |
+| change the demo page | `demo.md` |
+| take up a card, read or answer a post, or close a card | `governance.md` |
+
+`workflow.md` is the map: it gives the whole path from a story to a release, and points to the other six. Start there when you are unsure which one applies.
+
+### Also in `.claude/`
+
+- `examples/` — the exact copy of the implementation, for other repositories to read. In this repository, read `src/`, `specifications/` and `test/` directly.
